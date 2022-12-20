@@ -361,6 +361,10 @@
 "Assets/Equipaments/AA_UniversalCharacter/Scripts/CustomButton.cs"
 "Assets/Equipaments/AA_UniversalCharacter/Scripts/ModulesShaker.cs"
 "Assets/Scripts/FistPersonCam.cs"
+"Assets/Scripts/InterfaceController.cs"
+"Assets/Scripts/InventoryController.cs"
+"Assets/Scripts/Objects.cs"
+"Assets/Scripts/ObjectType.cs"
 "Assets/Scripts/Player.cs"
 "Assets/Terrain/Grass And Flowers Pack 1/Example Scene/SimpleTextureDrawing.cs"
 -langversion:9.0
