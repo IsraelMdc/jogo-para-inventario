@@ -4,50 +4,39 @@ using UnityEngine;
 
 public class FistPersonCam : MonoBehaviour
 {
-    public Transform characterBody;
-    public Transform characterHead;
+    // Sensibilidade para o x e y  
+    public float sensX;
+    public float sensY;
 
-    float rotationX = 0;
-    float rotationY = 0;
+    // Orientação do player
+    public Transform orientation;
 
-    float SensibilityX = 0.5f;
-    float SensibilityY = 0.5f;
+    // Rotação x e y da câmera
+    float xRotation;
+    float yRotation;
 
-    float angleYMin = -90;
-    float angleYMax = 90;
-
-    float smootRotx = 0;
-    float smootRoty = 0;
-
-    float smoothCoefy = 0.005f;
-    float smoothCoefx = 0.005f;
-   
-    void Start()
+    private void Start()
     {
-        Cursor.visible = false;
+        // Trancar o cursor no meio da tela, e fazer dele invisível
         Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
     }
 
-    private void LateUpdate()
+    private void Update()
     {
-        transform.position = characterHead.position;
-    }
+        // Pegar o input do mouse
+        float mouseX = Input.GetAxisRaw("Mouse X") * Time.deltaTime * sensX;
+        float mouseY = Input.GetAxisRaw("Mouse Y") * Time.deltaTime * sensY;
 
-    void Update()
-    {
-        float verticalDelta = Input.GetAxisRaw("Mouse Y") * SensibilityY;
-        float horizontalDelta = Input.GetAxisRaw("Mouse X") * SensibilityX;
+        // Jeito que o unity funciona com rotação
+        yRotation += mouseX;
+        xRotation -= mouseY;
 
-        smootRotx = Mathf.Lerp(smootRotx,horizontalDelta, smoothCoefx); 
-        smootRoty = Mathf.Lerp(smootRoty,verticalDelta, smoothCoefy);
+        // Para o player não olhar mais que 90 graus para cima ou baixo
+        xRotation = Mathf.Clamp(xRotation, -90f, 90f);
 
-        rotationX += horizontalDelta;
-        rotationY += verticalDelta;
-
-        rotationY = Mathf.Clamp(rotationY, angleYMin, angleYMax);
-
-        characterBody.localEulerAngles = new Vector3(0, rotationX, 0);
-
-        transform.localEulerAngles = new Vector3(-rotationY, rotationX, 0);
+        // Rotação da câmera e orientação
+        transform.rotation = Quaternion.Euler(xRotation, yRotation, 0);
+        orientation.rotation = Quaternion.Euler(0, yRotation, 0);
     }
 }

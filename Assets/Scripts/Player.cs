@@ -4,59 +4,177 @@ using UnityEngine;
 
 public class Player : MonoBehaviour
 {
-    CharacterController controller;
+    [Header("Movement")]
+    // Velocidade de movimento para andar e correr
+    private float moveSpeed;
+    public float walkSpeed;
+    public float sprintSpeed;
 
-    Vector3 forward;
-    Vector3 strafe;
-    Vector3 vertical;
+    public float groundDrag;
 
-    float forwardSpeed = 8f;
-    float strafeSpeed = 8f;
+    // Para pular
+    public float jumpForce;
+    public float jumpCooldown;
+    public float airMultiplier;
+    bool readyToJump;
 
-    float gravity;
-    float jumpSpeed;
-    float maxJumpHeight = 2f;
-    float timeToMaxHeight = 0.5f;
-    void Start()
+    // Escolha da tecla para o pulo e para correr
+    [Header("Keybinds")]
+    public KeyCode jumpKey = KeyCode.Space;
+    public KeyCode sprintKey = KeyCode.LeftShift;
+
+
+    // Checar se o player está ou não no chão para se mover
+    [Header("Ground check")]
+    public float playerHeight;
+    public LayerMask whatIsGround;
+    public LayerMask objetos;
+    bool grounded;
+
+    // Transform da orientação
+    public Transform orientation;
+
+    // Inputs do teclado do horizontal e vertical
+    float horizontalInput;
+    float verticalInput;
+
+    // Direção de movimento
+    Vector3 moveDirection;
+
+    // Rigidbody do player
+    Rigidbody rb;
+
+    // Estado de movimento do player
+    public MovementState state;
+    public enum MovementState
     {
-        controller = GetComponent<CharacterController>();
-        gravity = (-2 * maxJumpHeight) / (timeToMaxHeight * timeToMaxHeight);
-        jumpSpeed = (2 * maxJumpHeight) / (timeToMaxHeight);
+        walking,
+        sprinting,
+        air
+    }
+
+    private void Start()
+    {
+        // Pegar o rigidbody do player e congelar sua rotação
+        rb = GetComponent<Rigidbody>();
+        rb.freezeRotation = true;
+
+        readyToJump = true;
+    }
+
+    private void Update()
+    {
+        // Usa o raycast apontado para baixo para checar se o player está ou não no chão
+        grounded = Physics.Raycast(transform.position, Vector3.down, playerHeight * 0.5f + 0.2f, whatIsGround) || Physics.Raycast(transform.position, Vector3.down, playerHeight * 0.5f + 0.2f, objetos);
+        MyInput();
+        SpeedControl();
+        StateHandler();
+
+        // A partir do cheque de chão faz o rag do player
+        if (grounded)
+        {
+            rb.drag = groundDrag;
+        }
+        else
+        {
+            rb.drag = 0;
+        }
 
     }
 
-
-    void Update()
+    private void FixedUpdate()
     {
-        float forwardInput = Input.GetAxisRaw("Vertical");
-        float strafeInput = Input.GetAxisRaw("Horizontal");
+        MovePlayer();
+    }
 
-        forward = forwardInput * forwardSpeed * transform.forward;
-        strafe = strafeInput * strafeSpeed * transform.right;
 
-        vertical += gravity * Time.deltaTime * Vector3.up;
+    private void MyInput()
+    {
+        // Input do teclado
+        horizontalInput = Input.GetAxisRaw("Horizontal");
+        verticalInput = Input.GetAxisRaw("Vertical");
 
-        if (controller.isGrounded) 
+        // Quando player deve pular
+        if (Input.GetKey(jumpKey) && readyToJump && grounded)
         {
-            vertical = Vector3.down;        
+            readyToJump = false;
+
+            Jump();
+
+            // Resetar o pulo usando o cooldown para delay, algo que serve para não pular direto se segurar a tecla
+            Invoke(nameof(ResetJump), jumpCooldown);
         }
-        
-        if (Input.GetKey(KeyCode.Space) && controller.isGrounded)
+
+    }
+
+    private void StateHandler()
+    {
+        // Modo: Correndo (Sprinting)
+        if(grounded && Input.GetKey(sprintKey))
         {
-            vertical = jumpSpeed * Vector3.up;
+            state = MovementState.sprinting;
+            moveSpeed = sprintSpeed;
         }
 
-        if(vertical.y >0 && (controller.collisionFlags & CollisionFlags.Above) != 0)
+        // Modo: Andando
+        else if (grounded)
         {
-            vertical = Vector3.zero;
+            state = MovementState.walking;
+            moveSpeed = walkSpeed;
+        }
+
+        // Modo: No ar
+        else
+        {
+            state = MovementState.air;
+        }
+    }
+    private void MovePlayer()
+    {
+        // Calcular direção do movimento
+        moveDirection = orientation.forward * verticalInput + orientation.right * horizontalInput;
+
+        // Adicionar força no player
+        // No chão
+        if (grounded)
+        {
+            rb.AddForce(moveDirection.normalized * moveSpeed * 10f, ForceMode.Force);
+        }
+        // No ar
+        else if(!grounded)
+        {
+            rb.AddForce(moveDirection.normalized * moveSpeed * 10f * airMultiplier, ForceMode.Force);
+        }
+    }
+
+    private void SpeedControl()
+    {
+        // Pega a velocidade normal do rigidbody
+        Vector3 flatVel = new Vector3(rb.velocity.x, 0f, rb.velocity.z);
+    
+        // Limita a velocidade se neccessário
+        if(flatVel.magnitude > moveSpeed)
+        {
+            Vector3 limitedVel = flatVel.normalized * moveSpeed;
+            rb.velocity = new Vector3(limitedVel.x, rb.velocity.y, limitedVel.z);
         }
     
+    }
 
-        Vector3 finalVelocity = forward + strafe + vertical;
+    private void Jump()
+    {
+        // Confirmação que a velocidade do y está no 0
+        rb.velocity = new Vector3(rb.velocity.x, 0f, rb.velocity.z);
 
-        controller.Move(finalVelocity* Time.deltaTime);
-        
-
+        // Fazer a força dó pulo (usar o Impulse por estar fazendo força uma única vez)
+        rb.AddForce(transform.up * jumpForce, ForceMode.Impulse);
 
     }
+
+    // Função só para resetar o pulo
+    private void ResetJump()
+    {
+        readyToJump = true;
+    }
+
 }   
