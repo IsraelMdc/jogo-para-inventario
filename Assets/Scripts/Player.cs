@@ -4,6 +4,9 @@ using UnityEngine;
 
 public class Player : MonoBehaviour
 {
+    // Para determinar se o player pode se mexer ou não
+    bool canMove = true;
+
     [Header("Movement")]
     // Velocidade de movimento para andar e correr
     private float moveSpeed;
@@ -64,6 +67,7 @@ public class Player : MonoBehaviour
 
     private void Update()
     {
+        if (canMove) {  
         // Usa o raycast apontado para baixo para checar se o player está ou não no chão
         grounded = Physics.Raycast(transform.position, Vector3.down, playerHeight * 0.5f + 0.2f, whatIsGround) || Physics.Raycast(transform.position, Vector3.down, playerHeight * 0.5f + 0.2f, objetos);
         MyInput();
@@ -78,13 +82,16 @@ public class Player : MonoBehaviour
         else
         {
             rb.drag = 0;
-        }
+        }}
 
     }
 
     private void FixedUpdate()
     {
-        MovePlayer();
+        if (canMove) 
+        {
+            MovePlayer();
+        }
     }
 
 
@@ -175,6 +182,18 @@ public class Player : MonoBehaviour
     private void ResetJump()
     {
         readyToJump = true;
+    }
+
+    public void IfCanMove(int move)
+    {
+        if(move == 0)
+        {
+            canMove = true;
+        }
+        else
+        {
+            canMove = false;
+        }
     }
 
 }   

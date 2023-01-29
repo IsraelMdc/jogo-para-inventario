@@ -13,6 +13,11 @@ public class InventoryController: MonoBehaviour
     public Text[] quantidadesTextInv;
     public int[] slotAmountInv;
 
+    // Baú
+    int abriuBauCont = 0;
+    bool abriuBau = false;
+    public Sprite slotVazio;
+
     // Espaço de um baú
     public Objects[] slotsChest;
     public Image[] slotImageChest;
@@ -40,6 +45,10 @@ public class InventoryController: MonoBehaviour
 
     void Update()
     {
+        // Função que checa se um baú foi aberto
+        AbriuBau();
+
+        // Raycast do aim do player
         RaycastHit hit;
         Ray ray = Camera.main.ScreenPointToRay(new Vector3(Screen.width/2, Screen.height/2));
         if (Physics.Raycast(ray, out hit, rangeRay)) 
@@ -75,17 +84,21 @@ public class InventoryController: MonoBehaviour
             } 
             else if(hit.collider.tag == "Chest")
             {
-                iController.itemText.text = "Press (E) to open the Chest";
-
-                if (Input.GetKeyDown(KeyCode.E))
+                if (abriuBauCont < 2)
                 {
-                    GameObject.FindGameObjectWithTag("Canvas").GetComponent<InterfaceController>().Chest(0);
-                    /**
+                    abriuBauCont++;
+                }
+                if (abriuBau == false && abriuBauCont == 2)
+                {
+                    iController.itemText.text = "Press (E) to open the Chest";
+
                     if (Input.GetKeyDown(KeyCode.E))
                     {
-                        GameObject.FindGameObjectWithTag("Canvas").GetComponent<InterfaceController>().Chest(1);
-                    }**/
-
+                        slotsChest = hit.transform.GetComponent<ChestItems>().itensChest;
+                        slotAmountChest = hit.transform.GetComponent<ChestItems>().quantItensChest;
+                        GameObject.FindGameObjectWithTag("Canvas").GetComponent<InterfaceController>().Chest(0);
+                        abriuBau = true;
+                    }
                 }
             }
             else if(hit.collider.tag != "Object") 
@@ -99,11 +112,86 @@ public class InventoryController: MonoBehaviour
         }
     }
 
+    void AbriuBau()
+    {
+        if(abriuBau == true)
+        {
+            SyncInventories(0);
+
+            if (abriuBauCont < 4)
+            {
+                abriuBauCont++;
+            }
+            // Desativar o menu de baú
+            if(Input.GetKeyDown(KeyCode.E) && abriuBauCont == 4)
+            {
+                abriuBauCont = 0;
+                GameObject.FindGameObjectWithTag("Canvas").GetComponent<InterfaceController>().Chest(1);
+                SyncInventories(1);
+                abriuBau = false;
+            }
+        }
+    }
+
+
     // Função que vai atualizar o inventário que aparece ao abrir baús com o inventário normal. Ao receber os seguintes números:
     // 0: Atualiza o inventário para báu
     // 1: Atualiza o inventário normal
     void SyncInventories(int invParaAtualizar)
     {
-        // A criar
+        if(invParaAtualizar == 0)
+        {
+            for (int i = 0; i < slotsInv.Length; i++)
+            {
+                if (slotsInv[i] != null)
+                {
+                    slotsChestInv[i] = slotsInv[i];
+                    slotAmountChestInv[i] = slotAmountInv[i];
+                    quantidadeFundoImageChestInv[i].gameObject.SetActive(true);
+                    quantidadeImageChestInv[i].gameObject.SetActive(true);
+                    quantidadesTextChestInv[i].GetComponent<Text>().text = slotAmountChestInv[i].ToString();
+                    slotImageChestInv[i].sprite = slotsInv[i].itemSprite;
+                }
+            }
+
+            for (int i = 0; i < slotsChest.Length; i++)
+            {
+                if (slotsChest[i] != null)
+                {
+                    quantidadeFundoImageChest[i].gameObject.SetActive(true);
+                    quantidadeImageChest[i].gameObject.SetActive(true);
+                    quantidadesTextChest[i].GetComponent<Text>().text = slotAmountChest[i].ToString();
+                    slotImageChest[i].sprite = slotsChest[i].itemSprite;
+                }
+                else
+                {
+                    quantidadeFundoImageChest[i].gameObject.SetActive(false);
+                    quantidadeImageChest[i].gameObject.SetActive(false);
+                    slotImageChest[i].sprite = slotVazio;
+                }
+            }
+
+        }
+        else
+        {
+            for (int i = 0; i < slotsChestInv.Length; i++)
+            {
+                if (slotsChestInv[i] != null)
+                {
+                    slotsInv[i] = slotsChestInv[i];
+                    slotAmountInv[i] = slotAmountChestInv[i];
+                    quantidadeFundoImageInv[i].gameObject.SetActive(true);
+                    quantidadeImageInv[i].gameObject.SetActive(true);
+                    quantidadesTextInv[i].GetComponent<Text>().text = slotAmountInv[i].ToString();
+                    slotImageInv[i].sprite = slotsChestInv[i].itemSprite;
+                }
+                else
+                {
+                    quantidadeFundoImageInv[i].gameObject.SetActive(false);
+                    quantidadeImageInv[i].gameObject.SetActive(false);
+                    slotImageInv[i].sprite = slotVazio;
+                }
+            }
+        }
     }
 }
