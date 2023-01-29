@@ -156,7 +156,7 @@ public class InventoryController: MonoBehaviour
 
             for (int i = 0; i < slotsChest.Length; i++)
             {
-                if (slotsChest[i] != null)
+                if (slotsChest[i] != null && slotAmountChest[i] != 0)
                 {
                     quantidadeFundoImageChest[i].gameObject.SetActive(true);
                     quantidadeImageChest[i].gameObject.SetActive(true);
