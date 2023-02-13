@@ -115,11 +115,15 @@ public class InventoryController: MonoBehaviour
     void AbriuBau()
     {
         if(abriuBau == true)
-        {
-            SyncInventories(0);
+        {/**
+            for (int i = 0; i < slotsInv.Length; i++)
+            {
+
+            }**/
 
             if (abriuBauCont < 4)
             {
+                SyncInventories(0);
                 abriuBauCont++;
             }
             // Desativar o menu de baú
@@ -194,4 +198,33 @@ public class InventoryController: MonoBehaviour
             }
         }
     }
+
+    // Função que ao ser chamada permite a transferência de itens.
+    // Caso lado seja 0, o slot está do aldo do inventário do baú
+    // Caso seja 1, está no próprio baú
+    public void TransferirItem(char slotNum, int lado)
+    {
+        if(lado == 0)
+        {
+            // A cada scroll para cima
+            if(Input.GetAxis("Mouse ScrollWheel") > 0f)
+            {
+                int slot = slotNum;
+                if (slotsChestInv[slot - 1] != null)
+                {
+
+                }
+                
+               
+            }
+            // A cada scroll para baixo
+            else if (Input.GetAxis("Mouse ScrollWheel") < 0f)
+            {
+            }
+        }
+        else
+        {
+        }
+    }
+
 }

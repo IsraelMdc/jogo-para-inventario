@@ -67,22 +67,21 @@ public class Player : MonoBehaviour
 
     private void Update()
     {
-        if (canMove) {  
-        // Usa o raycast apontado para baixo para checar se o player está ou não no chão
-        grounded = Physics.Raycast(transform.position, Vector3.down, playerHeight * 0.5f + 0.2f, whatIsGround) || Physics.Raycast(transform.position, Vector3.down, playerHeight * 0.5f + 0.2f, objetos);
-        MyInput();
-        SpeedControl();
-        StateHandler();
+        if (canMove) {
+            MyInput();
+            SpeedControl();
+            StateHandler();
 
-        // A partir do cheque de chão faz o rag do player
-        if (grounded)
-        {
-            rb.drag = groundDrag;
+            // A partir do cheque de chão faz o rag do player
+            if (grounded)
+            {
+                rb.drag = groundDrag;
+            }
+            else
+            {
+                rb.drag = 0;
+            }
         }
-        else
-        {
-            rb.drag = 0;
-        }}
 
     }
 
@@ -194,6 +193,11 @@ public class Player : MonoBehaviour
         {
             canMove = false;
         }
+    }
+
+    public void Grounded(bool onGround)
+    {
+        grounded = onGround;
     }
 
 }   
